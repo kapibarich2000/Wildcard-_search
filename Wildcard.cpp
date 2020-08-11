@@ -127,11 +127,19 @@ const void Wildcard::searchByStar(std::string &str_find) {
                     break;
                 }
                 if (i==border)
-                    std::cout<<"Phone number: "<<it.first<<" l_name: "<<it.second<<std::endl;
+                    std::cout<<"Phone number: "<<it.first<<"   Last name: "<<it.second<<std::endl;
             }
         }
     }else{
-
+        for (auto it:_container_forNameSerch) {
+            for (int i = 0,border=str_find.find('*')-1; i !=str_find.find('*'); ++i) {
+                if (str_find[i]!=it.first.at(i)){
+                    break;
+                }
+                if (i==border)
+                    std::cout<<"Last name: "<<it.first<<"   Phone number: "<<it.second<<std::endl;
+            }
+        }
     }
 }
 
