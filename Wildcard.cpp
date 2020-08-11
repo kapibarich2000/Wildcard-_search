@@ -61,7 +61,7 @@ void Wildcard::autoCreate_Directory(int number_of_record) {
 
             // writing to file
             for (int i = 0; i < number_of_record; ++i) {
-                fout<<phoneNumbers[i]<<" "<<l_names[rand()%20]<<std::endl;
+                fout<<"+"<<phoneNumbers[i]<<" "<<l_names[rand()%20]<<std::endl;
             }
 
         }
@@ -93,4 +93,29 @@ void Wildcard::load_Directory() {
 
 const void Wildcard::search(std::string& str_find) {
 
+    if (str_find.find('*')==std::string::npos) searchByStar(str_find);
+
+
+   if(isPhoneNumber(str_find)){
+       if (_container_forNumberSerch.find(str_find)!=_container_forNumberSerch.end()){
+           std::cout<<"Result: "<<_container_forNumberSerch.find(str_find)->second<<std::endl;
+       } else{
+           std::cout<<"There is no such phone !"<<std::endl;
+       }
+   }
+   else{
+
+   }
+
+}
+const void Wildcard::searchByStar(std::string &str_find) {
+    if(isPhoneNumber(str_find)){
+
+    }else{
+
+    }
+}
+
+const bool Wildcard::isPhoneNumber(std::string &str_find) {
+    return str_find.at(0)=='+';
 }
