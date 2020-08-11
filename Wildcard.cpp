@@ -93,35 +93,43 @@ void Wildcard::load_Directory() {
 
 const void Wildcard::search(std::string& str_find) {
 
-    if (str_find.find('*')==std::string::npos) searchByStar(str_find);
+    if (str_find.find('*')!=std::string::npos) searchByStar(str_find);
+    else{
+        std::cout<<"Result:\n";
 
-
-    std::cout<<"Result:\n";
-
-   if(isPhoneNumber(str_find)){
-       if (_container_forNumberSerch.find(str_find)!=_container_forNumberSerch.end()){
-           std::cout<<_container_forNumberSerch.find(str_find)->second<<std::endl;
-       } else{
-           std::cout<<"There is no such phone number !"<<std::endl;
-       }
-   }
-   else{
-       bool isConsent= false;
-        for (auto it: _container_forNameSerch){
-            if (it.first==str_find){
-                std::cout<<it.second<<std::endl;
-                isConsent= true;
+        if(isPhoneNumber(str_find)){
+            if (_container_forNumberSerch.find(str_find)!=_container_forNumberSerch.end()){
+                std::cout<<_container_forNumberSerch.find(str_find)->second<<std::endl;
+            } else{
+                std::cout<<"There is no such phone number !"<<std::endl;
             }
         }
-        if (!isConsent){
-            std::cout<<"There is no such last name !"<<std::endl;
+        else{
+            bool isConsent= false;
+            for (auto it: _container_forNameSerch){
+                if (it.first==str_find){
+                    std::cout<<it.second<<std::endl;
+                    isConsent= true;
+                }
+            }
+            if (!isConsent){
+                std::cout<<"There is no such last name !"<<std::endl;
+            }
         }
-   }
-
+    }
 }
+
 const void Wildcard::searchByStar(std::string &str_find) {
     if(isPhoneNumber(str_find)){
-
+        for (auto it:_container_forNumberSerch) {
+            for (int i = 0,border=str_find.find('*')-1; i !=str_find.find('*'); ++i) {
+                if (str_find[i]!=it.first.at(i)){
+                    break;
+                }
+                if (i==border)
+                    std::cout<<"Phone number: "<<it.first<<" l_name: "<<it.second<<std::endl;
+            }
+        }
     }else{
 
     }

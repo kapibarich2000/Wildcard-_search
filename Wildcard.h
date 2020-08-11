@@ -5,6 +5,7 @@
 
 class Wildcard {
 public:
+
     Wildcard();
 
     void autoCreate_Directory(int number_of_record);
