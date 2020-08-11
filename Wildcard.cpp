@@ -96,15 +96,26 @@ const void Wildcard::search(std::string& str_find) {
     if (str_find.find('*')==std::string::npos) searchByStar(str_find);
 
 
+    std::cout<<"Result:\n";
+
    if(isPhoneNumber(str_find)){
        if (_container_forNumberSerch.find(str_find)!=_container_forNumberSerch.end()){
-           std::cout<<"Result: "<<_container_forNumberSerch.find(str_find)->second<<std::endl;
+           std::cout<<_container_forNumberSerch.find(str_find)->second<<std::endl;
        } else{
-           std::cout<<"There is no such phone !"<<std::endl;
+           std::cout<<"There is no such phone number !"<<std::endl;
        }
    }
    else{
-
+       bool isConsent= false;
+        for (auto it: _container_forNameSerch){
+            if (it.first==str_find){
+                std::cout<<it.second<<std::endl;
+                isConsent= true;
+            }
+        }
+        if (!isConsent){
+            std::cout<<"There is no such last name !"<<std::endl;
+        }
    }
 
 }
