@@ -1,23 +1,15 @@
 #include <iostream>
 #include "Wildcard.h"
-<<<<<<< HEAD
-=======
-#include <ctime>
->>>>>>> origin/Development
 #include <string>
 #include <vector>
 #include <array>
 #include <fstream>
-<<<<<<< HEAD
 #include <sstream>
 
 
 Wildcard::Wildcard() {
     _path="Phone_Directory.txt";
 }
-=======
-#include <cstdlib>
->>>>>>> origin/Development
 
 std::string generatePhoneNumber(){
     int part1 = 1000+rand()%9000;
@@ -33,21 +25,12 @@ std::string generatePhoneNumber(){
 
 }
 
-<<<<<<< HEAD
 void Wildcard::autoCreate_Directory(int number_of_record) {
-
-    if (number_of_record>0){
-        std::fstream fout(_path,std::ios_base::out|std::ios_base::trunc);
-        if (!fout.is_open()){
-            std::cout<<"Something went wrong with file!"<<std::endl;
-=======
-void Wildcard::autocreate_Directory(int number_of_record) {
 
     if (number_of_record>0){
         std::ofstream fout(_path,std::ios_base::out|std::ios_base::trunc);
         if (!fout.is_open()){
             std::cout<<"Something went wrong with opening the file!"<<std::endl;
->>>>>>> origin/Development
         }
         else{
             // creating an array of last names
@@ -67,11 +50,7 @@ void Wildcard::autocreate_Directory(int number_of_record) {
 
             // creating unique phone numbers
             std::vector<long long> phoneNumbers;
-<<<<<<< HEAD
             std::string Number =  generatePhoneNumber();
-=======
-            std::string Number =  generatePhoneNumber(); // generatePhoneNumber +73389177162
->>>>>>> origin/Development
             phoneNumbers.push_back(atoll(Number.c_str()));
             for (int i = 1; i < number_of_record; ++i) {
                 phoneNumbers.push_back(atoll(generatePhoneNumber().c_str()));
@@ -85,10 +64,6 @@ void Wildcard::autocreate_Directory(int number_of_record) {
                 fout<<phoneNumbers[i]<<" "<<l_names[rand()%20]<<std::endl;
             }
 
-<<<<<<< HEAD
-            fout.close();
-=======
->>>>>>> origin/Development
         }
     }
     else{
@@ -96,7 +71,6 @@ void Wildcard::autocreate_Directory(int number_of_record) {
     }
 
 }
-<<<<<<< HEAD
 
 void Wildcard::load_Directory() {
     std::ifstream fin(_path,std::ios_base::in);
@@ -115,17 +89,8 @@ void Wildcard::load_Directory() {
         }
     }
     fin.close();
-
-//    for (auto it = _container_forNameSerch.begin();  it!=_container_forNameSerch.end() ; ++it) {
-//        std::cout<<it->first<<" "<<it->second<<std::endl;
-//    }
-
 }
 
 const void Wildcard::search(std::string& str_find) {
 
 }
-
-
-=======
->>>>>>> origin/Development
