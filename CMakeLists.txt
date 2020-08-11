@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(Wildcard_search VERSION 0.1)
+project(Wildcard_search)
 
 
 add_executable(Wildcard_search main.cpp Wildcard.cpp Wildcard.h)
