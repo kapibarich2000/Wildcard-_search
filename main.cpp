@@ -6,6 +6,7 @@ int main(){
     std::srand(time(0));
 
     Wildcard wildcard;
+<<<<<<< HEAD
 
     wildcard.autoCreate_Directory(150);
     wildcard.load_Directory();
@@ -16,6 +17,9 @@ int main(){
     wildcard.search(str_find);
 
 
+=======
+    wildcard.autocreate_Directory(150);
+>>>>>>> origin/Development
 
     return 0;
 }
