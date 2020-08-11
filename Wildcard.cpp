@@ -9,7 +9,10 @@
 
 Wildcard::Wildcard() {
     _path="Phone_Directory.txt";
+    _isCoincidence= false;
 }
+
+
 
 std::string generatePhoneNumber(){
     int part1 = 1000+rand()%9000;
@@ -24,6 +27,8 @@ std::string generatePhoneNumber(){
     return phoneNumber;
 
 }
+
+
 
 void Wildcard::autoCreate_Directory(int number_of_record) {
 
@@ -72,6 +77,8 @@ void Wildcard::autoCreate_Directory(int number_of_record) {
 
 }
 
+
+
 void Wildcard::load_Directory() {
     std::ifstream fin(_path,std::ios_base::in);
     if (!fin.is_open()){
@@ -91,43 +98,56 @@ void Wildcard::load_Directory() {
     fin.close();
 }
 
+
+
 const void Wildcard::search(std::string& str_find) {
 
-    if (str_find.find('*')!=std::string::npos) searchByStar(str_find);
-    else{
-        std::cout<<"Result:\n";
+    std::cout<<"Result:"<<std::endl;
 
+    int countStars=0;
+    for (auto i=0;i<str_find.size();++i) {
+        if (str_find[i]=='*') countStars++;
+    }
+
+    if (countStars==2) searchByDoubleStar(str_find);
+
+    else if(countStars==1) searchByStar(str_find);
+
+    else{
         if(isPhoneNumber(str_find)){
             if (_container_forNumberSerch.find(str_find)!=_container_forNumberSerch.end()){
                 std::cout<<_container_forNumberSerch.find(str_find)->second<<std::endl;
-            } else{
-                std::cout<<"There is no such phone number !"<<std::endl;
-            }
+            } else showNoData();
         }
         else{
-            bool isConsent= false;
+            _isCoincidence= false;
             for (auto it: _container_forNameSerch){
                 if (it.first==str_find){
                     std::cout<<it.second<<std::endl;
-                    isConsent= true;
+                    _isCoincidence= true;
                 }
             }
-            if (!isConsent){
-                std::cout<<"There is no such last name !"<<std::endl;
-            }
+            if (!_isCoincidence) showNoData();
         }
     }
 }
 
+
+
 const void Wildcard::searchByStar(std::string &str_find) {
+
+    _isCoincidence= false;
     if(isPhoneNumber(str_find)){
         for (auto it:_container_forNumberSerch) {
             for (int i = 0,border=str_find.find('*')-1; i !=str_find.find('*'); ++i) {
                 if (str_find[i]!=it.first.at(i)){
                     break;
                 }
-                if (i==border)
+                if (i==border){
                     std::cout<<"Phone number: "<<it.first<<"   Last name: "<<it.second<<std::endl;
+                    _isCoincidence= true;
+                }
+
             }
         }
     }else{
@@ -136,13 +156,85 @@ const void Wildcard::searchByStar(std::string &str_find) {
                 if (str_find[i]!=it.first.at(i)){
                     break;
                 }
-                if (i==border)
+                if (i==border){
                     std::cout<<"Last name: "<<it.first<<"   Phone number: "<<it.second<<std::endl;
+                    _isCoincidence= true;
+                }
+
             }
         }
     }
+    if (!_isCoincidence) showNoData();
 }
+
+
+
+const void Wildcard::searchByDoubleStar(std::string &str_find) {
+    std::stringstream ss;
+    ss.str(str_find);
+    std::string item;
+    std::pair<std::string,std::string> keys;
+
+    int numberOfKey=1;
+    while (getline(ss, item, ' '))
+    {
+        if (numberOfKey==1) {
+            keys.first = item;
+            numberOfKey++;
+        }
+        else keys.second=item;
+    }
+    //std::cout<<"first key: "<<keys.first<<"  second key: "<<keys.second<<std::endl;
+
+    _isCoincidence= false;
+    if(isPhoneNumber(keys.first)){
+        for (auto it1:_container_forNumberSerch) {
+            for (int i = 0, border=keys.first.find('*')-1; i !=keys.first.find('*'); ++i) {
+                if (keys.first[i] != it1.first.at(i)) {
+                    break;
+                }
+                if (i == border){ // If the first key found a coincidence
+                    for (int j = 0, border = keys.second.find('*') - 1; j < keys.second.find('*'); ++j) {
+                        if (keys.second[j] != it1.second.at(j)) {
+                            break;
+                        }
+                        if (j == border) { //If the second key found a coincidence
+                            std::cout << "Phone number: " << it1.first << "   Last name: " << it1.second << std::endl;
+                            _isCoincidence = true;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        for (auto it1:_container_forNameSerch) {
+            for (int i = 0, border=keys.first.find('*')-1; i !=keys.first.find('*'); ++i) {
+                if (keys.first[i] != it1.first.at(i)) {
+                    break;
+                }
+                if (i == border){ // If the first key found a coincidence
+                    for (int j = 0, border = keys.second.find('*') - 1; j < keys.second.find('*'); ++j) {
+                        if (keys.second[j] != it1.second.at(j)) {
+                            break;
+                        }
+                        if (j == border) { //If the second key found a coincidence
+                            std::cout << "Last name: " << it1.first << "   Phone number: " << it1.second << std::endl;
+                            _isCoincidence = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (!_isCoincidence) showNoData();
+}
+
+
 
 const bool Wildcard::isPhoneNumber(std::string &str_find) {
     return str_find.at(0)=='+';
 }
+const void Wildcard::showNoData() {
+    std::cout<<"There is no such data !"<<std::endl;
+}
+
