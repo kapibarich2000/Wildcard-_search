@@ -115,19 +115,22 @@ const void Wildcard::search(std::string& str_find) {
 
     else{
         if(isPhoneNumber(str_find)){
-            if (_container_forNumberSerch.find(str_find)!=_container_forNumberSerch.end()){
-                std::cout<<_container_forNumberSerch.find(str_find)->second<<std::endl;
+            auto it_on_str=_container_forNumberSerch.find(str_find);
+            if (it_on_str!=_container_forNumberSerch.end()){
+                std::cout<<it_on_str->second<<std::endl;
             } else showNoData();
         }
         else{
             _isCoincidence= false;
-            for (auto it: _container_forNameSerch){
-                if (it.first==str_find){
-                    std::cout<<it.second<<std::endl;
-                    _isCoincidence= true;
-                }
+            auto it_on_str=_container_forNameSerch.equal_range(str_find);
+            for(auto it = it_on_str.first; it != it_on_str.second; it++)
+            {
+                std::cout<<it->second<<std::endl;
+                _isCoincidence= true;
             }
-            if (!_isCoincidence) showNoData();
+            if (!_isCoincidence){
+                showNoData();
+            }
         }
     }
 }
