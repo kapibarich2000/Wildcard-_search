@@ -5,12 +5,25 @@
 #include <array>
 #include <fstream>
 #include <sstream>
+#include <cctype>
+
+// #define PlusPlus ++i
+// ifdef c++
 
 
 WildCard::WildCard():_path("Phone_Directory.txt"),_isCoincidence(false) {}
 
 bool WildCard::isPhoneNumber(std::string &str)const {
-    return str.at(0)=='+';
+    int i=0;
+    while (str[i]){ // while it's not end (of the string)
+        if (str[i]=='*'||str[i]=='&'){
+            ++i;
+            continue;
+        }
+        else if (isalpha(str[i])) return false;
+        else return true;
+    }
+    throw WildCardException(WildCardException::ErrorsType::INPUT_ERROR);
 }
 void WildCard::showNoData()const {
     std::cout<<"There is no such data !"<<std::endl;
@@ -104,24 +117,21 @@ void WildCard::prepareWords(std::string& str_find){
 
     while (getline(ss, word, ' '))
     {
-        // first word - phone
-        // second word - l_name
-
         if (isPhoneNumber(word)){
 
-            _words.first._str_word = word;
-            findStars(_words.first);
+            _words.phone._str_word = word;
+            findStars(_words.phone);
 
-            if (_words.first._str_word.find('&')!=std::string::npos || _words.first._str_word.find('*') != std::string::npos)
-                _words.first._needSearch= true;
+            if (_words.phone._str_word.find('&')!=std::string::npos || _words.phone._str_word.find('*') != std::string::npos)
+            {_words.phone._needSearch= true;}
 
         } else{
 
-            _words.second._str_word=word;
-            findStars(_words.second);
+            _words.l_name._str_word=word;
+            findStars(_words.l_name);
 
-            if (_words.second._str_word.find('&')!=std::string::npos||_words.second._str_word.find('*')!=std::string::npos)
-                _words.second._needSearch= true;
+            if (_words.l_name._str_word.find('&')!=std::string::npos||_words.l_name._str_word.find('*')!=std::string::npos)
+            { _words.l_name._needSearch = true; }
         }
     }
 }
@@ -143,40 +153,36 @@ void WildCard::startSearch(std::string& str_find) {
 
     prepareWords(str_find);
 
-    selectStarSearch();
+    if (_words.phone._needSearch && _words.l_name._needSearch)
+        searchByTwoWord();
+    else
+        searchByOneWord();
 
     if (!_isCoincidence) showNoData();
 }
 
-void WildCard::selectStarSearch() {
+void WildCard::start_SimpleSearch() {
 
-    if (_words.first._needSearch && _words.second._needSearch)
-        searchByTwoWord();
+    std::string search_str;
 
-    else if(_words.first._needSearch || _words.second._needSearch)
-        searchByOneWord();
-
+    if (_words.phone._str_word.empty()) search_str=_words.l_name._str_word;
+    else if (_words.l_name._str_word.empty()) search_str=_words.phone._str_word;
     else{
-        std::string search_str;
-        if (_words.first._str_word.empty()) search_str=_words.second._str_word;
-        else if (_words.second._str_word.empty()) search_str=_words.first._str_word;
-        else{
-            throw WildCardException(WildCardException::ErrorsType::INPUT_ERROR);
-        }
+        throw WildCardException(WildCardException::ErrorsType::INPUT_ERROR);
+    }
 
-        if(isPhoneNumber(search_str)){
-            auto it_on_str=_container_forNumberSearch.find(search_str);
-            if (it_on_str!=_container_forNumberSearch.end()){
-                std::cout<<it_on_str->second<<std::endl;
-                _isCoincidence= true;
-            }
-        }else{
-            auto it_on_str=_container_forNameSearch.equal_range(search_str);
-            for(auto it = it_on_str.first; it != it_on_str.second; it++)
-            {
-                std::cout<<it->second<<std::endl;
-                _isCoincidence= true;
-            }
+    if(isPhoneNumber(search_str)){
+        auto it_on_str=_container_forNumberSearch.find(search_str);
+        if (it_on_str!=_container_forNumberSearch.end()){
+            std::cout<<it_on_str->second<<std::endl;
+            _isCoincidence= true;
+        }
+    }else{
+        auto it_on_str=_container_forNameSearch.equal_range(search_str);
+        for(auto it = it_on_str.first; it != it_on_str.second; it++)
+        {
+            std::cout<<it->second<<std::endl;
+            _isCoincidence= true;
         }
     }
 }
@@ -185,94 +191,140 @@ void WildCard::selectStarSearch() {
 void WildCard::searchByOneWord() {
 
     Word* analyzedWord;
-    std::string* str_secondWord; // if is
+    std::string* str_secondWord; // for to match
     PositionOfStar positionOfStar;
 
-    if (_words.first._needSearch) {
-        analyzedWord=&_words.first;
-        str_secondWord=&_words.second._str_word;
+    if (_words.phone._needSearch) {
+        analyzedWord=&_words.phone;
+        str_secondWord=&_words.l_name._str_word;
     }
-    else {
-        analyzedWord=&_words.second;
-        str_secondWord=&_words.first._str_word;
+    else if (_words.l_name._needSearch) {
+        analyzedWord=&_words.l_name;
+        str_secondWord=&_words.phone._str_word;
+    } else{
+        start_SimpleSearch();
     }
 
-    if(analyzedWord->_areThereStars.first) positionOfStar=PositionOfStar::Right;
-    else if(analyzedWord->_areThereStars.second) positionOfStar=PositionOfStar::Left;
-    else positionOfStar=PositionOfStar::BothSide;
 
-//    if( isPhoneNumber(analyzedWord->_str_word))
-//        start_searchByOneWord(_container_forNumberSearch, &analyzedWord->_str_word, str_secondWord, positionOfStar);
-//
-//    else
-//        start_searchByOneWord(_container_forNameSearch, &analyzedWord->_str_word,  str_secondWord, positionOfStar);
+    if(analyzedWord->_areThereStars.first) positionOfStar=PositionOfStar::Left;
+    else if(analyzedWord->_areThereStars.second) positionOfStar=PositionOfStar::Right;
+    else if(analyzedWord->_areThereStars.first&&analyzedWord->_areThereStars.second) positionOfStar=PositionOfStar::BothSide;
+    else positionOfStar=PositionOfStar::NoOne;
+
+    if( isPhoneNumber(analyzedWord->_str_word)) // Два раза используем isPhoneNumber()
+        start_searchByOneWord(_container_forNumberSearch, &analyzedWord->_str_word, str_secondWord, positionOfStar);
+
+    else
+        start_searchByOneWord(_container_forNameSearch, &analyzedWord->_str_word,  str_secondWord, positionOfStar);
 }
 
-//void WildCard::start_searchByOneWord(const std::unordered_multimap<std::string, std::string> &container, std::string*  analyzedWord,
-//                                      std::string* secondWord, PositionOfStar positionOfStar) {
-//
-//    int firstPosition;
-//    int endOfSearchPosition; // location before star
-//
-//
-//    if (positionOfStar==Left){
-//        firstPosition=(int)analyzedWord->size()-1;
-//        endOfSearchPosition=(int)analyzedWord->find('*')+1;
-//    } else{ // Left and BothSide
-//        firstPosition=0;
-//        endOfSearchPosition=(int)analyzedWord->find('*')-1;
-//    }
-//
-//    for (const auto& it:container) {
-//
-//        switch (positionOfStar) {
-//        case Left:
-//                for (int i = firstPosition; i !=analyzedWord->find('*'); --i) {
-//                    if (analyzedWord->at(i)!=it.first.at(i)) break;
-//                    else if (i==endOfSearchPosition) {
-//                        if (secondWord->empty() || *secondWord == it.second) {
-//                            std::cout << it.first << "  " << it.second << std::endl;
-//                            _isCoincidence = true;
-//                        }
-//                    }
-//                }
-//            break;
-//
-//        case Right:
-//            for (int i = firstPosition; i !=analyzedWord->find('*'); ++i) {
-//                if (analyzedWord->at(i)!=it.first.at(i)) break;
-//                else if (i==endOfSearchPosition) {
-//                    if (secondWord->empty() || *secondWord == it.second) {
-//                        std::cout << it.first << "  " << it.second << std::endl;
-//                        _isCoincidence = true;
-//                    }
-//                }
-//            }
-//            break;
-//
-//        case BothSide:
-//            for (int i = firstPosition; i !=analyzedWord->find('*'); --i) {
-//                if (analyzedWord->at(i)!=it.first.at(i)) break;
-//                else if (i==endOfSearchPosition) {
-//                    if (secondWord->empty() || *secondWord == it.second) {
-//                        std::cout << it.first << "  " << it.second << std::endl;
-//                        _isCoincidence = true;
-//                    }
-//                }
-//            }
-//            break;
-//
-//        default:
-//            break;
-//        }
-//
-//    }
-//
-//}
+void WildCard::start_searchByOneWord(const std::unordered_multimap<std::string, std::string> &container, std::string*  analyzedWord,
+                                      std::string* secondWord, PositionOfStar positionOfStar) {
+
+    int firstPosition;
+    int endOfSearchPosition; // location before star
+
+
+    if (positionOfStar==PositionOfStar::Left){
+        firstPosition=analyzedWord->size()-1;
+        endOfSearchPosition=(int)analyzedWord->find('*')+1; // find() return -> 0
+    }else if(positionOfStar==PositionOfStar::Right) {
+        firstPosition=0;
+        endOfSearchPosition=(int)analyzedWord->find('*')-1;
+    }else if (positionOfStar==PositionOfStar::BothSide){
+        firstPosition=1; // because 0 is *
+        endOfSearchPosition=(int)analyzedWord->find('*')-1;
+    }
+    else{ // None
+        firstPosition=0;
+        endOfSearchPosition=(int)analyzedWord->size()-1;
+    }
+
+
+    switch (positionOfStar) {
+        case PositionOfStar::Left:
+            for (const auto& it:container) {
+                for (int j_str = firstPosition,j_container=it.first.size()-1; j_str !=analyzedWord->find('*')&&j_container!=-1; --j_str,--j_container) {//  find return 0
+                    if (analyzedWord->at(j_str) == '&') {} // *ова   *&ва    *о&а
+                    else if (analyzedWord->at(j_str) != it.first.at(j_container))
+                        break;
+                    if (j_str == endOfSearchPosition) {
+                        if (secondWord->empty() || *secondWord == it.second) {
+                            std::cout << it.first << "  " << it.second << std::endl;
+                            _isCoincidence = true;
+                        }
+                    }
+                }
+            }
+        break;
+    case PositionOfStar::Right:
+
+        for (const auto& it:container) {
+
+            for (int j = firstPosition; j != analyzedWord->find('*'); ++j) {
+
+                if (it.first.at(j) == '&') {} // *&ва   *ова    *&&а
+
+                for (int j_container=0;j_container!=it.first.size(); ++j_container) {
+
+                    if (analyzedWord->at(j)!=it.first.at(j_container)) continue;
+                    else //
+
+//                    else if (analyzedWord->at(j) != it.first.at(j))
+//                        break;
+
+                    if (j == endOfSearchPosition) {
+                        if (secondWord->empty() || *secondWord == it.second) {
+                            std::cout << it.first << "  " << it.second << std::endl;
+                            _isCoincidence = true;
+                        }
+                    }
+                }
+            }
+        }
+        break;
+
+    case PositionOfStar::BothSide:
+        for (const auto& it:container) {
+            for (int j = firstPosition; j != analyzedWord->size(); ++j) {
+                if (it.first.at(j) == '&') {}
+                else if (analyzedWord->at(j) != it.first.at(j)) break;
+
+                if (j == endOfSearchPosition) {
+                    if (secondWord->empty() || *secondWord == it.second) {
+                        std::cout << it.first << "  " << it.second << std::endl;
+                        _isCoincidence = true;
+                    }
+                }
+            }
+        }
+        break;
+
+        case PositionOfStar::NoOne:
+            for (const auto& it:container) {
+                for (int j = 0; j != analyzedWord->size(); ++j) {
+
+                    if (it.first.at(j) == '&') {} // &ова    Вов&    &&ва    В&ва
+                    else if (analyzedWord->at(j) != it.first.at(j)) break;
+
+                    if (j == endOfSearchPosition) {
+                        if (secondWord->empty() || *secondWord == it.second) {
+                            std::cout << it.first << "  " << it.second << std::endl;
+                            _isCoincidence = true;
+                        }
+                    }
+
+                }
+            }
+            break;
+    default:
+        break;
+    }
+}
 
 
 void WildCard::searchByTwoWord() {
-    if(isPhoneNumber(_words.first._str_word))
+    if(isPhoneNumber(_words.phone._str_word))
         start_searchByTwoWord(_container_forNumberSearch);
     else
         start_searchByTwoWord(_container_forNameSearch);
@@ -281,16 +333,16 @@ void WildCard::searchByTwoWord() {
 void WildCard::start_searchByTwoWord(const std::unordered_multimap<std::string, std::string> &container) {
     for (auto it:container) {
 
-        int first_border=(int)_words.first._str_word.find('*')-1; // read until the star and go to the second key
-        int second_border=(int)_words.second._str_word.find('*') - 1;
+        int first_border=(int)_words.phone._str_word.find('*')-1; // read until the star and go to the second key
+        int second_border=(int)_words.l_name._str_word.find('*') - 1;
 
-        for (int i = 0; i !=_words.first._str_word.find('*'); ++i) {
-            if (_words.first._str_word[i] != it.first.at(i)) {
+        for (int i = 0; i !=_words.phone._str_word.find('*'); ++i) {
+            if (_words.phone._str_word[i] != it.first.at(i)) {
                 break; // to search for another record in the container
             }
             if (i == first_border){ // If the first key found a coincidence
-                for (int j = 0; j < _words.second._str_word.find('*'); ++j) {
-                    if (_words.second._str_word[j] != it.second.at(j)) {
+                for (int j = 0; j < _words.l_name._str_word.find('*'); ++j) {
+                    if (_words.l_name._str_word[j] != it.second.at(j)) {
                         break;
                     }
                     if (j == second_border) { //If the second key found a coincidence
@@ -302,5 +354,7 @@ void WildCard::start_searchByTwoWord(const std::unordered_multimap<std::string, 
         }
     }
 }
+
+
 
 

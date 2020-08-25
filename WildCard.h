@@ -6,7 +6,8 @@
 enum class PositionOfStar{
     Left,
     Right,
-    BothSide
+    BothSide,
+    NoOne
 };
 
 class WildCardException:public std::exception{
@@ -42,6 +43,11 @@ struct Word{
     std::pair<bool,bool> _areThereStars={false, false};
 };
 
+struct Words{
+    Word phone;
+    Word l_name;
+};
+
 class WildCard {
 public:
 
@@ -59,9 +65,9 @@ private:
     std::unordered_multimap<std::string,std::string>  _container_forNumberSearch{};
 
 
-    std::pair<Word,Word> _words{};
+    Words _words{};
 
-    void selectStarSearch();
+    void start_SimpleSearch();
 
     void searchByOneWord();
     void start_searchByOneWord(const std::unordered_multimap<std::string, std::string> &container, std::string* analyzedWord,
